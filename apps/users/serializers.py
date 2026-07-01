@@ -95,6 +95,7 @@ class UpdateProfileSerializer(serializers.Serializer):
     first_name = serializers.CharField(max_length=50, required=False)
     last_name = serializers.CharField(max_length=50, required=False)
     phone = serializers.CharField(max_length=20, required=False, allow_blank=True)
+    password = serializers.CharField(min_length=6, required=False, write_only=True)
     
     def update(self, instance, validated_data):
         if 'first_name' in validated_data:
@@ -104,5 +105,7 @@ class UpdateProfileSerializer(serializers.Serializer):
         if 'phone' in validated_data:
             instance.profile.phone = validated_data['phone']
             instance.profile.save()
+        if 'password' in validated_data:
+            instance.set_password(validated_data['password'])
         instance.save()
         return instance
