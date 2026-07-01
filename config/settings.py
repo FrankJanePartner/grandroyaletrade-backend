@@ -19,7 +19,7 @@ SECRET_KEY = get_config('SECRET_KEY', 'django-insecure-dev-key-change-in-product
 
 DEBUG = get_config('DEBUG', True, bool)
 
-ALLOWED_HOSTS = ['https://grandroyaletrade-backend-ashy.vercel.app']
+ALLOWED_HOSTS = ['https://grandroyaletrade-backend-ashy.vercel.app', 'grandroyaletrade-backend-ashy.vercel.app']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
