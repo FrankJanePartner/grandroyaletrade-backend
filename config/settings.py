@@ -19,7 +19,7 @@ SECRET_KEY = get_config('SECRET_KEY', 'django-insecure-dev-key-change-in-product
 
 DEBUG = get_config('DEBUG', True, bool)
 
-ALLOWED_HOSTS = get_config('ALLOWED_HOSTS', 'localhost,127.0.0.1', lambda v: [s.strip() for s in v.split(',')])
+ALLOWED_HOSTS = get_config('ALLOWED_HOSTS', 'https://grandroyaletrade-backend-ashy.vercel.app' 'localhost,127.0.0.1', lambda v: [s.strip() for s in v.split(',')])
 
 INSTALLED_APPS = [
     'django.contrib.admin',
