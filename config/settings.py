@@ -121,7 +121,7 @@ REST_FRAMEWORK = {
 # CORS
 CORS_ALLOWED_ORIGINS = get_config(
     'CORS_ALLOWED_ORIGINS',
-    'http://localhost:5173,http://localhost:3000',
+    'http://localhost:5173,http://localhost:3000,https://grand-royale-trade.vercel.app,https://grandroyaletrade.com',
     lambda v: [s.strip() for s in v.split(',')]
 )
 
