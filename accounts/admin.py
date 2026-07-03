@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import User
-
+from django.contrib.auth.models import Group
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
@@ -55,3 +56,8 @@ class CustomUserAdmin(UserAdmin):
             },
         ),
     )
+    
+    
+admin.site.unregister(OutstandingToken)
+admin.site.unregister(BlacklistedToken)
+admin.site.unregister(Group)
