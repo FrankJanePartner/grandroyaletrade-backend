@@ -14,7 +14,7 @@ SECRET_KEY = 'django-insecure-l8*gy##+fj_yxvtk_lohw1@mg98*n2%zl94*3^!6*y=_8w28zi
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['grandroyaletrade-backend-ashy.vercel.app']
+ALLOWED_HOSTS = ['grandroyaletrade-backend-ashy.vercel.app', 'https://grandroyaletrade-backend-ashy.vercel.app']
 
 
 # Application definition
@@ -145,3 +145,14 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": True,
 }
+
+CORS_ALLOWED_ORIGINS = [
+    'https://grand-royale-trade.vercel.app/auth/register'
+    'http://localhost:3000',
+    'http://localhost:8080',
+    'grandroyaletrade-backend-ashy.vercel.app',
+]
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+AUTH_USER_MODEL = "accounts.User"
