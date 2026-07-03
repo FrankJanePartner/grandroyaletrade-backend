@@ -15,7 +15,7 @@ SECRET_KEY = 'django-insecure-l8*gy##+fj_yxvtk_lohw1@mg98*n2%zl94*3^!6*y=_8w28zi
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'https://grandroyaletrade-backend.vercel.app/',
+    'https://grandroyaletrade-backend.vercel.app',
     'grandroyaletrade-backend.vercel.app',
     'http://127.0.0.1:8000',
     'localhost',
@@ -153,7 +153,7 @@ CORS_ALLOWED_ORIGINS = [
     'https://grand-royale-trade.vercel.app',
     'http://localhost:3000',
     'http://localhost:8080',
-    'https://grandroyaletrade-backend-ashy.vercel.app',
+    'https://grandroyaletrade-backend.vercel.app',
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
