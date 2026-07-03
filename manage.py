@@ -6,18 +6,7 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    settings_module = os.environ.get('DJANGO_SETTINGS_MODULE', 'config.settings')
-    try:
-        import importlib
-        importlib.import_module(settings_module)
-    except ModuleNotFoundError as exc:
-        if exc.name and (settings_module == exc.name or settings_module.startswith(exc.name + '.')):
-            # The settings module itself (or its parent package) does not exist.
-            # Fall back to the default config.settings.
-            os.environ['DJANGO_SETTINGS_MODULE'] = 'config.settings'
-        else:
-            raise
-
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'grandroyaletrade.settings')
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
@@ -26,10 +15,6 @@ def main():
             "available on your PYTHONPATH environment variable? Did you "
             "forget to activate a virtual environment?"
         ) from exc
-
-    import django
-    django.setup()
-
     execute_from_command_line(sys.argv)
 
 
