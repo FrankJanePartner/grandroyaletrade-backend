@@ -6,8 +6,9 @@ from .models import (
     Wallet,
     InvestmentPlan,
     Investment,
+    Deposit,
+    PaymentMethod,
 )
-
 
 class WalletSerializer(serializers.ModelSerializer):
 
@@ -118,3 +119,75 @@ class CreateInvestmentSerializer(serializers.Serializer):
             )
 
         return attrs
+
+
+
+class PaymentMethodSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PaymentMethod
+        fields = (
+            "id",
+            "name",
+            "method_type",
+            "account_name",
+            "account_number",
+            "bank_name",
+            "wallet_address",
+            "qr_code",
+            "instructions",
+        )
+
+
+class DepositSerializer(serializers.ModelSerializer):
+
+    payment_method = PaymentMethodSerializer(
+        read_only=True
+    )
+
+    class Meta:
+        model = Deposit
+        fields = (
+            "id",
+            "payment_method",
+            "amount",
+            "transaction_reference",
+            "proof",
+            "status",
+            "created_at",
+            "approved_at",
+        )
+
+
+class CreateDepositSerializer(serializers.Serializer):
+
+    payment_method = serializers.PrimaryKeyRelatedField(
+        queryset=PaymentMethod.objects.filter(
+            is_active=True
+        )
+    )
+
+    amount = serializers.DecimalField(
+        max_digits=18,
+        decimal_places=2,
+    )
+
+    transaction_reference = serializers.CharField(
+        max_length=150,
+        required=False,
+        allow_blank=True,
+    )
+
+    proof = serializers.ImageField(
+        required=False,
+        allow_null=True,
+    )
+
+    def validate_amount(self, value):
+
+        if value <= 0:
+            raise serializers.ValidationError(
+                "Amount must be greater than zero."
+            )
+
+        return value
