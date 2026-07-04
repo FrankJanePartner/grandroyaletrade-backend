@@ -28,11 +28,7 @@ class WalletAPIView(generics.RetrieveAPIView):
 
 
 class InvestmentPlanListAPIView(generics.ListAPIView):
-
-    queryset = InvestmentPlan.objects.filter(
-        is_active=True
-    )
-
+    queryset = InvestmentPlan.objects.filter(is_active=True)
     serializer_class = InvestmentPlanSerializer
     permission_classes = [AllowAny]
 
