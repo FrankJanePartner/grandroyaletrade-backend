@@ -10,7 +10,10 @@ from drf_spectacular.views import (
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # my urls
     path('api/auth/', include('accounts.urls', namespace='accounts')),
+    path("api/finance/", include("finance.urls", namespace="finance")),
 
     # OpenAPI schema
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),

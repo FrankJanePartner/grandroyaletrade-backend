@@ -1,0 +1,120 @@
+from decimal import Decimal
+from django.utils import timezone
+from rest_framework import serializers
+
+from .models import (
+    Wallet,
+    InvestmentPlan,
+    Investment,
+)
+
+
+class WalletSerializer(serializers.ModelSerializer):
+
+    total_balance = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Wallet
+        fields = (
+            "id",
+            "available_balance",
+            "locked_balance",
+            "total_profit",
+            "total_balance",
+            "currency",
+        )
+
+
+class InvestmentPlanSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = InvestmentPlan
+        fields = (
+            "id",
+            "name",
+            "description",
+            "minimum_amount",
+            "maximum_amount",
+            "roi_percentage",
+            "duration_days",
+            "is_active",
+        )
+
+
+class InvestmentSerializer(serializers.ModelSerializer):
+
+    plan_name = serializers.ReadOnlyField(
+        source="plan.name"
+    )
+
+    class Meta:
+        model = Investment
+        fields = (
+            "id",
+            "plan",
+            "plan_name",
+            "amount",
+            "expected_profit",
+            "total_return",
+            "status",
+            "start_date",
+            "end_date",
+        )
+
+
+class CreateInvestmentSerializer(serializers.Serializer):
+
+    plan = serializers.PrimaryKeyRelatedField(
+        queryset=InvestmentPlan.objects.filter(
+            is_active=True
+        )
+    )
+
+    amount = serializers.DecimalField(
+        max_digits=18,
+        decimal_places=2,
+    )
+
+    def validate(self, attrs):
+
+        user = self.context["request"].user
+
+        wallet = user.wallet
+
+        plan = attrs["plan"]
+
+        amount = attrs["amount"]
+
+        if amount <= 0:
+            raise serializers.ValidationError(
+                {
+                    "amount":
+                    "Investment amount must be greater than zero."
+                }
+            )
+
+        if amount < plan.minimum_amount:
+            raise serializers.ValidationError(
+                {
+                    "amount":
+                    f"Minimum investment is ."
+                }
+            )
+
+        if amount > plan.maximum_amount:
+            raise serializers.ValidationError(
+                {
+                    "amount":
+                    f"Maximum investment is ."
+                }
+            )
+
+        if wallet.available_balance < amount:
+            raise serializers.ValidationError(
+                {
+                    "amount":
+                    "Insufficient wallet balance."
+                }
+            )
+
+        return attrs
