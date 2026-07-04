@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     
     #my apps
     'accounts',
-    'core'
+    'core',
+    'finance',
 ]
 
 MIDDLEWARE = [
