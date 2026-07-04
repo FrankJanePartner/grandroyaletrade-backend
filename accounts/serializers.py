@@ -172,3 +172,26 @@ class LoginSerializer(serializers.Serializer):
             "refresh": str(refresh),
             "access": str(refresh.access_token),
         }
+        
+        
+class ProfileSerializer(serializers.ModelSerializer):
+    full_name = serializers.ReadOnlyField()
+
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "full_name",
+            "referral_code",
+            "is_verified",
+            "date_joined",
+        )
+        read_only_fields = (
+            "email",
+            "referral_code",
+            "is_verified",
+            "date_joined",
+        )

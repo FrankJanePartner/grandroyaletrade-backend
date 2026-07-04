@@ -4,7 +4,11 @@ from .views import (
     LoginAPIView,
     LogoutAPIView,
     CurrentUserAPIView,
+    ProfileAPIView,
+    ChangePasswordAPIView,
 )
+from rest_framework_simplejwt.views import TokenRefreshView
+
 
 app_name='accounts'
 
@@ -32,5 +36,23 @@ urlpatterns = [
         "me/",
         CurrentUserAPIView.as_view(),
         name="current-user",
+    ),
+
+    path(
+        "profile/",
+        ProfileAPIView.as_view(),
+        name="profile",
+    ),
+
+    path(
+        "change-password/",
+        ChangePasswordAPIView.as_view(),
+        name="change-password",
+    ),
+
+    path(
+        "refresh/",
+        TokenRefreshView.as_view(),
+        name="token-refresh",
     ),
 ]

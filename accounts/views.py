@@ -5,13 +5,16 @@ from rest_framework.permissions import (
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
 from .serializers import (
     RegisterSerializer,
     LoginSerializer,
     UserSerializer,
 )
 from .services import TokenService
+from .serializers import (
+    ProfileSerializer,
+    ChangePasswordSerializer,
+)
 
 class RegisterAPIView(APIView):
 
@@ -118,3 +121,55 @@ class LogoutAPIView(APIView):
             )
             
             
+
+class ProfileAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        serializer = ProfileSerializer(request.user)
+
+        return Response(serializer.data)
+
+    def put(self, request):
+
+        serializer = ProfileSerializer(
+            request.user,
+            data=request.data,
+            partial=True,
+        )
+
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save()
+
+        return Response({
+            "success": True,
+            "message": "Profile updated successfully.",
+            "user": serializer.data,
+        })
+        
+
+class ChangePasswordAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        serializer = ChangePasswordSerializer(
+            data=request.data,
+            context={"request": request},
+        )
+
+        serializer.is_valid(raise_exception=True)
+
+        UserService.change_password(
+            request.user,
+            serializer.validated_data["new_password"],
+        )
+
+        return Response({
+            "success": True,
+            "message": "Password updated successfully."
+        })

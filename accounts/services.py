@@ -15,3 +15,15 @@ class TokenService:
     def blacklist_token(refresh_token):
         token = RefreshToken(refresh_token)
         token.blacklist()
+        
+        
+class UserService:
+
+    @staticmethod
+    def change_password(user, password):
+
+        user.set_password(password)
+
+        user.save(update_fields=["password"])
+
+        return user
