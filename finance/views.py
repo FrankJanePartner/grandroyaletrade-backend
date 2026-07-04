@@ -1,7 +1,11 @@
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import (
+    AllowAny,
+    IsAdminUser,
+    IsAuthenticated,
+)
 from .models import (
     Wallet,
     InvestmentPlan,
@@ -13,9 +17,13 @@ from .serializers import (
     InvestmentPlanSerializer,
     InvestmentSerializer,
     CreateInvestmentSerializer,
+    CreateDepositSerializer,
+    DepositSerializer,
+    PaymentMethodSerializer,
+    RejectDepositSerializer,
 )
-from .services import InvestmentService
-
+from .services import InvestmentService, DepositService
+from .selectors import DepositSelector
 
 class WalletAPIView(generics.RetrieveAPIView):
 
@@ -99,3 +107,121 @@ class MyDataAPIView(APIView):
                 "wallet_balance": wallet.available_balance,
             },
         })
+        
+        
+class PaymentMethodListAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        methods = DepositSelector.payment_methods()
+
+        serializer = PaymentMethodSerializer(
+            methods,
+            many=True,
+        )
+
+        return Response(serializer.data)
+    
+    
+class DepositListAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        deposits = DepositSelector.user_deposits(
+            request.user
+        )
+
+        serializer = DepositSerializer(
+            deposits,
+            many=True,
+        )
+
+        return Response(serializer.data)
+    
+class DepositDetailAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+
+        deposit = DepositSelector.deposit(
+            request.user,
+            pk,
+        )
+
+        serializer = DepositSerializer(deposit)
+
+        return Response(serializer.data)
+    
+    
+class CreateDepositAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        serializer = CreateDepositSerializer(
+            data=request.data
+        )
+
+        serializer.is_valid(
+            raise_exception=True
+        )
+
+        deposit = DepositService.create_deposit(
+            user=request.user,
+            **serializer.validated_data,
+        )
+
+        return Response(
+            DepositSerializer(deposit).data,
+            status=status.HTTP_201_CREATED,
+        )
+        
+
+class ApproveDepositAPIView(APIView):
+
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, pk):
+
+        deposit = DepositSelector.admin_deposit(pk)
+
+        deposit = DepositService.approve_deposit(
+            deposit=deposit,
+            approved_by=request.user,
+        )
+
+        return Response(
+            DepositSerializer(deposit).data
+        )
+        
+
+class RejectDepositAPIView(APIView):
+
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, pk):
+
+        serializer = RejectDepositSerializer(
+            data=request.data
+        )
+
+        serializer.is_valid(
+            raise_exception=True
+        )
+
+        deposit = DepositSelector.admin_deposit(pk)
+
+        deposit = DepositService.reject_deposit(
+            deposit=deposit,
+            reason=serializer.validated_data["reason"],
+        )
+
+        return Response(
+            DepositSerializer(deposit).data
+        )

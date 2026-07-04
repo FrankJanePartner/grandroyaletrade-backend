@@ -6,6 +6,12 @@ from .views import (
     InvestmentListAPIView,
     CreateInvestmentAPIView,
     MyDataAPIView,
+    PaymentMethodListAPIView,
+    DepositListAPIView,
+    DepositDetailAPIView,
+    CreateDepositAPIView,
+    ApproveDepositAPIView,
+    RejectDepositAPIView,
 )
 
 
@@ -40,5 +46,34 @@ urlpatterns = [
         MyDataAPIView.as_view(),
         name="my-data",
     ),
-
+    path(
+        "payment-methods/",
+        PaymentMethodListAPIView.as_view(),
+        name="payment-method-list",
+    ),
+    path(
+        "deposits/",
+        DepositListAPIView.as_view(),
+        name="deposit-list",
+    ),
+    path(
+        "deposits/create/",
+        CreateDepositAPIView.as_view(),
+        name="deposit-create",
+    ),
+    path(
+        "deposits/<int:pk>/",
+        DepositDetailAPIView.as_view(),
+        name="deposit-detail",
+    ),
+    path(
+        "deposits/<int:pk>/approve/",
+        ApproveDepositAPIView.as_view(),
+        name="deposit-approve",
+    ),
+    path(
+        "deposits/<int:pk>/reject/",
+        RejectDepositAPIView.as_view(),
+        name="deposit-reject",
+    ),
 ]

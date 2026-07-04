@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Wallet, InvestmentPlan, Investment
+from .models import Wallet, InvestmentPlan, Investment, Deposit, PaymentMethod, Transaction
 
 
 @admin.register(Wallet)
@@ -33,4 +33,64 @@ class InvestmentAdmin(admin.ModelAdmin):
         "status",
         "start_date",
         "end_date",
+    )
+    
+    
+@admin.register(PaymentMethod)
+class PaymentMethodAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "name",
+        "method_type",
+        "is_active",
+    )
+
+    list_filter = (
+        "method_type",
+        "is_active",
+    )
+
+
+@admin.register(Deposit)
+class DepositAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "id",
+        "user",
+        "amount",
+        "status",
+        "created_at",
+    )
+
+    list_filter = (
+        "status",
+        "payment_method",
+    )
+
+    search_fields = (
+        "user__email",
+        "transaction_reference",
+    )
+
+
+@admin.register(Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "reference",
+        "user",
+        "transaction_type",
+        "amount",
+        "status",
+        "created_at",
+    )
+
+    list_filter = (
+        "transaction_type",
+        "status",
+    )
+
+    search_fields = (
+        "reference",
+        "user__email",
     )

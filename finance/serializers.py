@@ -191,3 +191,7 @@ class CreateDepositSerializer(serializers.Serializer):
             )
 
         return value
+    
+    
+class RejectDepositSerializer(serializers.Serializer):
+    reason = serializers.CharField()
