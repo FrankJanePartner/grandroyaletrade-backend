@@ -12,9 +12,9 @@ app_name = "finance"
 urlpatterns = [
 
     path(
-        "wallet/",
+        "wallets/",
         WalletAPIView.as_view(),
-        name="wallet",
+        name="wallets",
     ),
 
     path(
