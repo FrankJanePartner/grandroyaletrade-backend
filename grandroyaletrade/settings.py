@@ -17,15 +17,12 @@ SECRET_KEY = 'django-insecure-l8*gy##+fj_yxvtk_lohw1@mg98*n2%zl94*3^!6*y=_8w28zi
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'https://grandroyaletrade-backend.vercel.app',
-    'grandroyaletrade-backend.vercel.app',
-    'http://127.0.0.1:8000',
-    'localhost',
-    'http://localhost:3000',
-    'http://localhost:8080',
-    'https://grand-royale-trade.vercel.app',
-    '.vercel.app',
-    ]
+    "grandroyaletrade-backend.vercel.app",
+    "grand-royale-trade.vercel.app",
+    ".vercel.app",
+    "localhost",
+    "127.0.0.1",
+]
 
 
 # Application definition
