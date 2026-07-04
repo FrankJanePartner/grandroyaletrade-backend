@@ -7,14 +7,13 @@ from .models import (
     InvestmentPlan,
     Investment,
 )
-
+from rest_framework.views import APIView
 from .serializers import (
     WalletSerializer,
     InvestmentPlanSerializer,
     InvestmentSerializer,
     CreateInvestmentSerializer,
 )
-
 from .services import InvestmentService
 
 
@@ -74,3 +73,29 @@ class CreateInvestmentAPIView(generics.CreateAPIView):
         return Response(
             InvestmentSerializer(investment).data
         )
+        
+        
+
+class MyDataAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        wallet = request.user.wallet
+
+        investments = Investment.objects.filter(
+            user=request.user
+        ).order_by("-created_at")[:5]
+
+        return Response({
+            "wallet": WalletSerializer(wallet).data,
+            "active_investments": InvestmentSerializer(
+                investments,
+                many=True,
+            ).data,
+            "statistics": {
+                "total_invested": wallet.locked_balance,
+                "total_profit": wallet.total_profit,
+                "wallet_balance": wallet.available_balance,
+            },
+        })

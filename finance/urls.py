@@ -5,6 +5,7 @@ from .views import (
     InvestmentPlanListAPIView,
     InvestmentListAPIView,
     CreateInvestmentAPIView,
+    MyDataAPIView,
 )
 
 
@@ -33,6 +34,11 @@ urlpatterns = [
         "investments/create/",
         CreateInvestmentAPIView.as_view(),
         name="create-investment",
+    ),
+    path(
+        "my-data/",
+        MyDataAPIView.as_view(),
+        name="my-data",
     ),
 
 ]
