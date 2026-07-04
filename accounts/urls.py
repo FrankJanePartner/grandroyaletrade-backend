@@ -5,8 +5,9 @@ from .views import (
     LogoutAPIView,
     CurrentUserAPIView,
     ProfileAPIView,
-    ChangePasswordAPIView,
+    ChangePasswordAPIView
 )
+
 from rest_framework_simplejwt.views import TokenRefreshView
 
 
