@@ -195,3 +195,36 @@ class CreateDepositSerializer(serializers.Serializer):
     
 class RejectDepositSerializer(serializers.Serializer):
     reason = serializers.CharField()
+    
+from rest_framework import serializers
+
+from .models import Withdrawal
+
+
+class WithdrawalSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Withdrawal
+
+        fields = "__all__"
+
+        read_only_fields = (
+            "id",
+            "user",
+            "wallet",
+            "status",
+            "reference",
+            "approved_by",
+            "approved_at",
+            "created_at",
+            "updated_at",
+        )
+
+    def validate_amount(self, value):
+
+        if value <= 0:
+            raise serializers.ValidationError(
+                "Withdrawal amount must be greater than zero."
+            )
+
+        return value
