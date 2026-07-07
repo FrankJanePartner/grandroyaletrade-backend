@@ -34,20 +34,33 @@ class InvestmentAdmin(admin.ModelAdmin):
         "start_date",
         "end_date",
     )
-    
-    
+
+
 @admin.register(PaymentMethod)
 class PaymentMethodAdmin(admin.ModelAdmin):
 
     list_display = (
         "name",
-        "method_type",
+        "symbol",
+        "network",
         "is_active",
+        "created_at",
     )
 
     list_filter = (
-        "method_type",
+        "network",
         "is_active",
+    )
+
+    search_fields = (
+        "name",
+        "symbol",
+        "network",
+        "wallet_address",
+    )
+
+    ordering = (
+        "name",
     )
 
 
@@ -94,3 +107,5 @@ class TransactionAdmin(admin.ModelAdmin):
         "reference",
         "user__email",
     )
+    
+    

@@ -51,6 +51,13 @@ class Wallet(models.Model):
     
     
 class InvestmentPlan(models.Model):
+    class ROIFrequency(models.TextChoices):
+        DAILY = "daily", "Daily"
+        WEEKLY = "weekly", "Weekly"
+        MONTHLY = "monthly", "Monthly"
+        MATURITY = "maturity", "At Maturity"
+        
+        
     name = models.CharField(
         max_length=100,
     )
@@ -66,6 +73,11 @@ class InvestmentPlan(models.Model):
     roi_percentage = models.DecimalField(
         max_digits=5,
         decimal_places=2,
+    )
+    roi_frequency = models.CharField(
+        max_length=20,
+        choices=ROIFrequency.choices,
+        default=ROIFrequency.DAILY,
     )
     duration_days = models.PositiveIntegerField()
     is_active = models.BooleanField(
@@ -95,6 +107,13 @@ class Investment(models.Model):
         max_digits=18,
         decimal_places=2,
     )
+    roi_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+    )
+    total_payouts = models.PositiveIntegerField(
+        default=0,
+    )
     expected_profit = models.DecimalField(
         max_digits=18,
         decimal_places=2,
@@ -107,6 +126,23 @@ class Investment(models.Model):
         max_length=20,
         choices=InvestmentStatus.choices,
         default=InvestmentStatus.PENDING,
+    )
+    earned_profit = models.DecimalField(
+        max_digits=18,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+    last_roi_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+    next_roi_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+    completed_at = models.DateTimeField(
+        null=True,
+        blank=True,
     )
     start_date = models.DateTimeField(
         auto_now_add=True,
@@ -177,7 +213,15 @@ class Transaction(models.Model):
     )
 
     description = models.TextField(blank=True)
-
+    remaining_profit = models.DecimalField(
+        max_digits=18,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+    reference = models.CharField(
+        max_length=100,
+        unique=True,
+    )
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
@@ -192,55 +236,48 @@ class Transaction(models.Model):
     def __str__(self):
         return f"{self.reference}"
     
-    
+
+
 class PaymentMethod(models.Model):
 
-    class MethodType(models.TextChoices):
-        CRYPTO = "crypto", "Crypto"
-        BANK = "bank", "Bank Transfer"
-
-    name = models.CharField(max_length=100)
-
-    method_type = models.CharField(
-        max_length=20,
-        choices=MethodType.choices,
-    )
-
-    account_name = models.CharField(
-        max_length=150,
-        blank=True,
-    )
-
-    account_number = models.CharField(
+    name = models.CharField(
         max_length=100,
-        blank=True,
     )
 
-    bank_name = models.CharField(
-        max_length=150,
-        blank=True,
+    symbol = models.CharField(
+        max_length=20,
     )
 
-    wallet_address = models.TextField(
-        blank=True,
+    network = models.CharField(
+        max_length=100,
     )
 
-    qr_code = models.ImageField(
-        upload_to="payment_qr/",
-        blank=True,
-        null=True,
+    wallet_address = models.TextField()
+
+    minimum_deposit = models.DecimalField(
+        max_digits=18,
+        decimal_places=2,
+        default=0,
     )
 
     instructions = models.TextField(
         blank=True,
     )
 
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(
+        default=True,
+    )
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+    )
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.network})"
     
     
 class Deposit(models.Model):
@@ -259,7 +296,14 @@ class Deposit(models.Model):
     payment_method = models.ForeignKey(
         PaymentMethod,
         on_delete=models.PROTECT,
-        related_name="deposits",
+    )
+
+    currency = models.CharField(
+        max_length=20,
+    )
+
+    network = models.CharField(
+        max_length=100,
     )
 
     amount = models.DecimalField(
@@ -267,15 +311,23 @@ class Deposit(models.Model):
         decimal_places=2,
     )
 
+    transaction_hash = models.CharField(
+        max_length=255,
+    )
+
     transaction_reference = models.CharField(
         max_length=150,
-        blank=True,
+        unique=True,
     )
 
     proof = models.ImageField(
         upload_to="deposit_proofs/",
         blank=True,
         null=True,
+    )
+
+    verified_on_chain = models.BooleanField(
+        default=False,
     )
 
     status = models.CharField(

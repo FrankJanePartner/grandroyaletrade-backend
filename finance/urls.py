@@ -12,6 +12,7 @@ from .views import (
     CreateDepositAPIView,
     ApproveDepositAPIView,
     RejectDepositAPIView,
+    MyDepositsAPIView,
 )
 
 
@@ -75,5 +76,12 @@ urlpatterns = [
         "deposits/<int:pk>/reject/",
         RejectDepositAPIView.as_view(),
         name="deposit-reject",
+    ),
+
+
+    path(
+        "my-deposits/",
+        MyDepositsAPIView.as_view(),
+        name="my-deposits",
     ),
 ]

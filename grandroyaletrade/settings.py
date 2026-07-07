@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'accounts',
     'core',
     'finance',
+    'cronjobs',
 ]
 
 MIDDLEWARE = [
@@ -175,3 +176,8 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
 }
+
+CRON_SECRET = os.getenv(
+    "CRON_SECRET",
+    "change-this-secret"
+)

@@ -8,7 +8,9 @@ from .models import (
     Investment,
     Deposit,
     PaymentMethod,
+    Withdrawal,
 )
+
 
 class WalletSerializer(serializers.ModelSerializer):
 
@@ -139,24 +141,50 @@ class PaymentMethodSerializer(serializers.ModelSerializer):
         )
 
 
-class DepositSerializer(serializers.ModelSerializer):
 
-    payment_method = PaymentMethodSerializer(
-        read_only=True
-    )
+class DepositCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Deposit
         fields = (
-            "id",
             "payment_method",
             "amount",
-            "transaction_reference",
+            "transaction_hash",
             "proof",
-            "status",
-            "created_at",
-            "approved_at",
         )
+
+    def validate_amount(self, value):
+
+        if value <= 0:
+            raise serializers.ValidationError(
+                "Amount must be greater than zero."
+            )
+
+        return value
+
+    def validate(self, attrs):
+
+        payment_method = attrs["payment_method"]
+
+        amount = attrs["amount"]
+
+        if not payment_method.is_active:
+            raise serializers.ValidationError(
+                {
+                    "payment_method":
+                    "This payment method is unavailable."
+                }
+            )
+
+        if amount < payment_method.minimum_deposit:
+            raise serializers.ValidationError(
+                {
+                    "amount":
+                    f"Minimum deposit is {payment_method.minimum_deposit}."
+                }
+            )
+
+        return attrs
 
 
 class CreateDepositSerializer(serializers.Serializer):
@@ -195,10 +223,6 @@ class CreateDepositSerializer(serializers.Serializer):
     
 class RejectDepositSerializer(serializers.Serializer):
     reason = serializers.CharField()
-    
-from rest_framework import serializers
-
-from .models import Withdrawal
 
 
 class WithdrawalSerializer(serializers.ModelSerializer):

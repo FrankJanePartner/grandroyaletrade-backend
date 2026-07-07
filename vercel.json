@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/internal/process-roi/",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}
