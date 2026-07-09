@@ -38,7 +38,8 @@ class DepositService:
         if deposit.status != Deposit.Status.PENDING:
             raise ValueError("Deposit has already been processed.")
 
-        wallet = Wallet.objects.select_for_update().get(user=deposit.user)
+        wallet, _ = Wallet.objects.get_or_create(user=deposit.user)
+        wallet = Wallet.objects.select_for_update().get(pk=wallet.pk)
 
         before = wallet.available_balance
         wallet.available_balance += deposit.amount
