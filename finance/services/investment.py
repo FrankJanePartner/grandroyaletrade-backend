@@ -36,7 +36,8 @@ class InvestmentService:
         amount = Decimal(amount)
 
         # Lock wallet row to prevent double spending
-        wallet = Wallet.objects.select_for_update().get(user=user)
+        wallet, _ = Wallet.objects.get_or_create(user=user)
+        wallet = Wallet.objects.select_for_update().get(pk=wallet.pk)
 
         # ------------------------
         # Validate investment plan

@@ -82,7 +82,7 @@ class CreateInvestmentSerializer(serializers.Serializer):
 
         user = self.context["request"].user
 
-        wallet = user.wallet
+        wallet, _ = Wallet.objects.get_or_create(user=user)
 
         plan = attrs["plan"]
 

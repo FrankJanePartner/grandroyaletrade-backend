@@ -37,7 +37,8 @@ class WalletAPIView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        return self.request.user.wallet
+        wallet, _ = Wallet.objects.get_or_create(user=self.request.user)
+        return wallet
 
 
 class InvestmentPlanListAPIView(generics.ListAPIView):
@@ -87,7 +88,7 @@ class MyDataAPIView(APIView):
 
     def get(self, request):
 
-        wallet = request.user.wallet
+        wallet, _ = Wallet.objects.get_or_create(user=request.user)
 
         investments = Investment.objects.filter(
             user=request.user
