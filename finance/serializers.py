@@ -100,7 +100,7 @@ class CreateInvestmentSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 {
                     "amount":
-                    f"Minimum investment is ."
+                    f"Minimum investment is {plan.minimum_amount}."
                 }
             )
 
@@ -108,7 +108,7 @@ class CreateInvestmentSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 {
                     "amount":
-                    f"Maximum investment is ."
+                    f"Maximum investment is {plan.maximum_amount}."
                 }
             )
 
@@ -123,7 +123,6 @@ class CreateInvestmentSerializer(serializers.Serializer):
         return attrs
 
 
-
 class PaymentMethodSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -131,41 +130,63 @@ class PaymentMethodSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "name",
-            "method_type",
-            "account_name",
-            "account_number",
-            "bank_name",
+            "symbol",
+            "network",
             "wallet_address",
-            "qr_code",
+            "minimum_deposit",
             "instructions",
+            "is_active",
         )
 
 
+class DepositSerializer(serializers.ModelSerializer):
 
-class DepositCreateSerializer(serializers.ModelSerializer):
+    payment_method_name = serializers.ReadOnlyField(
+        source="payment_method.name"
+    )
 
     class Meta:
         model = Deposit
         fields = (
+            "id",
             "payment_method",
+            "payment_method_name",
+            "currency",
+            "network",
             "amount",
             "transaction_hash",
+            "transaction_reference",
             "proof",
+            "status",
+            "created_at",
         )
 
-    def validate_amount(self, value):
 
+class DepositCreateSerializer(serializers.Serializer):
+
+    payment_method = serializers.PrimaryKeyRelatedField(
+        queryset=PaymentMethod.objects.filter(is_active=True)
+    )
+
+    amount = serializers.DecimalField(
+        max_digits=18,
+        decimal_places=2,
+    )
+
+    proof = serializers.ImageField(
+        required=False,
+        allow_null=True,
+    )
+
+    def validate_amount(self, value):
         if value <= 0:
             raise serializers.ValidationError(
                 "Amount must be greater than zero."
             )
-
         return value
 
     def validate(self, attrs):
-
         payment_method = attrs["payment_method"]
-
         amount = attrs["amount"]
 
         if not payment_method.is_active:
@@ -188,6 +209,7 @@ class DepositCreateSerializer(serializers.ModelSerializer):
 
 
 class CreateDepositSerializer(serializers.Serializer):
+    """Alias kept for backward compatibility."""
 
     payment_method = serializers.PrimaryKeyRelatedField(
         queryset=PaymentMethod.objects.filter(
@@ -200,27 +222,19 @@ class CreateDepositSerializer(serializers.Serializer):
         decimal_places=2,
     )
 
-    transaction_reference = serializers.CharField(
-        max_length=150,
-        required=False,
-        allow_blank=True,
-    )
-
     proof = serializers.ImageField(
         required=False,
         allow_null=True,
     )
 
     def validate_amount(self, value):
-
         if value <= 0:
             raise serializers.ValidationError(
                 "Amount must be greater than zero."
             )
-
         return value
-    
-    
+
+
 class RejectDepositSerializer(serializers.Serializer):
     reason = serializers.CharField()
 

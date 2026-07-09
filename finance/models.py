@@ -218,10 +218,6 @@ class Transaction(models.Model):
         decimal_places=2,
         default=Decimal("0.00"),
     )
-    reference = models.CharField(
-        max_length=100,
-        unique=True,
-    )
     status = models.CharField(
         max_length=20,
         choices=Status.choices,

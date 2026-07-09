@@ -6,11 +6,14 @@ from rest_framework.permissions import (
     IsAdminUser,
     IsAuthenticated,
 )
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+
 from .models import (
     Wallet,
     InvestmentPlan,
     Investment,
     Deposit,
+    PaymentMethod,
 )
 from rest_framework.views import APIView
 from .serializers import (
@@ -22,9 +25,10 @@ from .serializers import (
     PaymentMethodSerializer,
     RejectDepositSerializer,
     DepositCreateSerializer,
+    DepositSerializer,
 )
-from .services import investment, deposit
-
+from .services.investment import InvestmentService
+from .services.deposit import DepositService
 
 
 class WalletAPIView(generics.RetrieveAPIView):
@@ -53,38 +57,30 @@ class InvestmentListAPIView(generics.ListAPIView):
         ).order_by("-created_at")
 
 
-class CreateInvestmentAPIView(generics.CreateAPIView):
+class CreateInvestmentAPIView(APIView):
 
-    serializer_class = CreateInvestmentSerializer
     permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
+    def post(self, request, *args, **kwargs):
 
-        serializer.instance = investment.create_investment(
-            user=self.request.user,
-            plan=serializer.validated_data["plan"],
-            amount=serializer.validated_data["amount"],
-        )
-
-    def create(self, request, *args, **kwargs):
-
-        serializer = self.get_serializer(
-            data=request.data
+        serializer = CreateInvestmentSerializer(
+            data=request.data,
+            context={"request": request},
         )
 
         serializer.is_valid(raise_exception=True)
 
-        investment = investment.create_investment(
+        inv = InvestmentService.create_investment(
             user=request.user,
             plan=serializer.validated_data["plan"],
             amount=serializer.validated_data["amount"],
         )
 
         return Response(
-            InvestmentSerializer(investment).data
+            InvestmentSerializer(inv).data,
+            status=status.HTTP_201_CREATED,
         )
-        
-        
+
 
 class MyDataAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -109,15 +105,15 @@ class MyDataAPIView(APIView):
                 "wallet_balance": wallet.available_balance,
             },
         })
-        
-        
+
+
 class PaymentMethodListAPIView(APIView):
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request):
 
-        methods = DepositSelector.payment_methods()
+        methods = PaymentMethod.objects.filter(is_active=True)
 
         serializer = PaymentMethodSerializer(
             methods,
@@ -125,17 +121,17 @@ class PaymentMethodListAPIView(APIView):
         )
 
         return Response(serializer.data)
-    
-    
+
+
 class DepositListAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
 
-        deposits = DepositSelector.user_deposits(
-            request.user
-        )
+        deposits = Deposit.objects.filter(
+            user=request.user
+        ).order_by("-created_at")
 
         serializer = DepositSerializer(
             deposits,
@@ -143,26 +139,31 @@ class DepositListAPIView(APIView):
         )
 
         return Response(serializer.data)
-    
+
+
 class DepositDetailAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
 
-        deposit = DepositSelector.deposit(
-            request.user,
-            pk,
-        )
+        try:
+            deposit = Deposit.objects.get(pk=pk, user=request.user)
+        except Deposit.DoesNotExist:
+            return Response(
+                {"detail": "Not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         serializer = DepositSerializer(deposit)
 
         return Response(serializer.data)
-    
-    
+
+
 class CreateDepositAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def post(self, request):
 
@@ -172,24 +173,22 @@ class CreateDepositAPIView(APIView):
 
         serializer.is_valid(raise_exception=True)
 
-        deposit = deposit.create(
+        dep = DepositService.create_deposit(
             user=request.user,
             payment_method=serializer.validated_data["payment_method"],
             amount=serializer.validated_data["amount"],
-            transaction_hash=serializer.validated_data["transaction_hash"],
-            network=serializer.validated_data["network"],
             proof=serializer.validated_data.get("proof"),
         )
 
         return Response(
             {
                 "success": True,
-                "message": "Deposit submitted successfully.",
-                "deposit": DepositSerializer(deposit).data,
+                "message": "Deposit submitted successfully. Please await admin approval.",
+                "deposit": DepositSerializer(dep).data,
             },
             status=status.HTTP_201_CREATED,
         )
-        
+
 
 class MyDepositsAPIView(APIView):
 
@@ -199,7 +198,7 @@ class MyDepositsAPIView(APIView):
 
         deposits = Deposit.objects.filter(
             user=request.user
-        )
+        ).order_by("-created_at")
 
         serializer = DepositSerializer(
             deposits,
@@ -221,38 +220,50 @@ class RejectDepositAPIView(APIView):
 
         serializer.is_valid(raise_exception=True)
 
-        deposit = Deposit.objects.get(pk=pk)
+        try:
+            dep = Deposit.objects.get(pk=pk)
+        except Deposit.DoesNotExist:
+            return Response(
+                {"detail": "Not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-        deposit.reject(
-            deposit,
-            request.user,
-            serializer.validated_data["reason"],
+        DepositService.reject_deposit(
+            deposit=dep,
+            reason=serializer.validated_data["reason"],
         )
 
         return Response({
             "success": True,
             "message": "Deposit rejected."
         })
-        
+
+
 class ApproveDepositAPIView(APIView):
 
     permission_classes = [IsAdminUser]
 
     def post(self, request, pk):
 
-        deposit = Deposit.objects.get(pk=pk)
+        try:
+            dep = Deposit.objects.get(pk=pk)
+        except Deposit.DoesNotExist:
+            return Response(
+                {"detail": "Not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-        deposit.approve(
-            deposit,
-            request.user,
+        DepositService.approve_deposit(
+            deposit=dep,
+            approved_by=request.user,
         )
 
         return Response({
             "success": True,
             "message": "Deposit approved."
         })
-        
-        
+
+
 class AdminDepositListAPIView(APIView):
 
     permission_classes = [IsAdminUser]

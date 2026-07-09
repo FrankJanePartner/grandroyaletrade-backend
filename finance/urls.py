@@ -13,6 +13,7 @@ from .views import (
     ApproveDepositAPIView,
     RejectDepositAPIView,
     MyDepositsAPIView,
+    AdminDepositListAPIView,
 )
 
 
