@@ -138,7 +138,10 @@ STATICFILES_DIRS = [
 ]
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+if 'VERCEL' in os.environ or os.environ.get('VERCEL') == '1':
+    MEDIA_ROOT = '/tmp/media'
+else:
+    MEDIA_ROOT = BASE_DIR / 'media'
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (

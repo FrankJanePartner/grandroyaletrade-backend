@@ -14,6 +14,7 @@ from .models import (
     Investment,
     Deposit,
     PaymentMethod,
+    Withdrawal,
 )
 from rest_framework.views import APIView
 from .serializers import (
@@ -26,6 +27,7 @@ from .serializers import (
     RejectDepositSerializer,
     DepositCreateSerializer,
     DepositSerializer,
+    WithdrawalSerializer,
 )
 from .services.investment import InvestmentService
 from .services.deposit import DepositService
@@ -282,3 +284,57 @@ class AdminDepositListAPIView(APIView):
         )
 
         return Response(serializer.data)
+
+
+class WithdrawalListCreateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        withdrawals = Withdrawal.objects.filter(user=request.user).order_by("-created_at")
+        serializer = WithdrawalSerializer(withdrawals, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = WithdrawalSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+
+        wallet, _ = Wallet.objects.get_or_create(user=request.user)
+        amount = serializer.validated_data["amount"]
+
+        if wallet.available_balance < amount:
+            return Response(
+                {"amount": ["Insufficient wallet balance."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        before = wallet.available_balance
+        wallet.available_balance -= amount
+        wallet.save(update_fields=["available_balance"])
+
+        from finance.utils import generate_withdrawal_reference
+        from .models import Transaction as TxModel
+
+        withdrawal = Withdrawal.objects.create(
+            user=request.user,
+            wallet=wallet,
+            amount=amount,
+            destination=serializer.validated_data["destination"],
+            reference=generate_withdrawal_reference(),
+        )
+
+        TxModel.objects.create(
+            user=request.user,
+            wallet=wallet,
+            transaction_type=TxModel.TransactionType.WITHDRAWAL,
+            amount=amount,
+            balance_before=before,
+            balance_after=wallet.available_balance,
+            reference=withdrawal.reference,
+            description=f"Withdrawal to {withdrawal.destination}",
+            status=TxModel.Status.PENDING,
+        )
+
+        return Response(
+            WithdrawalSerializer(withdrawal).data,
+            status=status.HTTP_201_CREATED,
+        )
