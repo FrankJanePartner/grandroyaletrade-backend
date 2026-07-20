@@ -229,3 +229,22 @@ class ChangePasswordSerializer(serializers.Serializer):
         validate_password(attrs["new_password"])
 
         return attrs
+
+
+class ReferredUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+            "date_joined",
+        )
+
+
+class ReferralDashboardSerializer(serializers.Serializer):
+    referral_code = serializers.CharField()
+    total_referrals = serializers.IntegerField()
+    total_earned = serializers.DecimalField(max_digits=18, decimal_places=2)
+    referrals = ReferredUserSerializer(many=True)

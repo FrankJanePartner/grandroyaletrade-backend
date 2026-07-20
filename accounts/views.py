@@ -175,3 +175,31 @@ class ChangePasswordAPIView(APIView):
             "success": True,
             "message": "Password updated successfully."
         })
+
+
+from django.db.models import Sum
+from finance.models import Transaction
+from .serializers import ReferralDashboardSerializer
+
+class ReferralsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        referrals = user.referrals.all().order_by("-date_joined")
+        
+        total_earned = Transaction.objects.filter(
+            user=user, 
+            transaction_type=Transaction.TransactionType.REFERRAL,
+            status=Transaction.Status.COMPLETED
+        ).aggregate(total=Sum("amount"))["total"] or 0
+
+        data = {
+            "referral_code": user.referral_code,
+            "total_referrals": referrals.count(),
+            "total_earned": total_earned,
+            "referrals": referrals,
+        }
+        
+        serializer = ReferralDashboardSerializer(data)
+        return Response(serializer.data)

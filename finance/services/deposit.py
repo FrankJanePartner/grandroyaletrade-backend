@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from finance.models import Deposit, Wallet, Transaction
 from finance.utils import generate_deposit_reference
+from finance.services.referral import ReferralService
 
 
 class DepositService:
@@ -60,6 +61,8 @@ class DepositService:
             reference=f"DEP-{deposit.pk}-{generate_deposit_reference()}",
             description="Wallet Deposit",
         )
+
+        ReferralService.process_referral_bonus(deposit)
 
         return deposit
 
