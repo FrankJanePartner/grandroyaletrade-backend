@@ -9,6 +9,7 @@ from finance.models import (
     Wallet,
     Investment,
     Transaction,
+    InvestmentStatus,
 )
 
 from finance.utils import generate_investment_reference
@@ -111,7 +112,7 @@ class InvestmentService:
             expected_profit=expected_profit,
             total_return=total_return,
             earned_profit=Decimal("0.00"),
-            status=Investment.Status.ACTIVE,
+            status=InvestmentStatus.ACTIVE,
             start_date=now,
             end_date=end_date,
             last_roi_at=None,

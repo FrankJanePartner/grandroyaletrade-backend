@@ -15,16 +15,14 @@ class TransactionService:
         wallet,
         transaction_type,
         amount,
+        balance_before,
+        balance_after,
         reference,
         description="",
         status=Transaction.Status.COMPLETED,
     ):
 
         amount = Decimal(amount)
-
-        balance_before = wallet.total_balance
-
-        balance_after = balance_before
 
         return Transaction.objects.create(
             user=user,
