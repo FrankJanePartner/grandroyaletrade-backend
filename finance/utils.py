@@ -1,3 +1,32 @@
+
+# finance/utils.py
+
+from finance.models import Transaction
+
+
+def create_transaction(
+    *,
+    wallet,
+    user,
+    transaction_type,
+    amount,
+    status,
+    reference,
+    description="",
+    balance_before,
+    balance_after,
+):
+    return Transaction.objects.create(
+        wallet=wallet,
+        user=user,
+        transaction_type=transaction_type,
+        amount=amount,
+        status=status,
+        reference=reference,
+        description=description,
+        balance_before=balance_before,
+        balance_after=balance_after,
+    )
 import uuid
 
 
