@@ -15,6 +15,7 @@ from .views import (
     MyDepositsAPIView,
     AdminDepositListAPIView,
     WithdrawalListCreateAPIView,
+    ProcessROIAPIView
 )
 
 
@@ -79,8 +80,10 @@ urlpatterns = [
         RejectDepositAPIView.as_view(),
         name="deposit-reject",
     ),
-
-
+    path(
+        "cron/process-roi/",
+        ProcessROIAPIView.as_view(),
+    ),
     path(
         "my-deposits/",
         MyDepositsAPIView.as_view(),

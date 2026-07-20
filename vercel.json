@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/internal/process-roi/",
+      "path": "/api/finance/cron/process-roi/",
       "schedule": "0 0 * * *"
     }
   ]

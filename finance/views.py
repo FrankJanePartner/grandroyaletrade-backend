@@ -1,3 +1,4 @@
+import os
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -337,4 +338,26 @@ class WithdrawalListCreateAPIView(APIView):
         return Response(
             WithdrawalSerializer(withdrawal).data,
             status=status.HTTP_201_CREATED,
-        )
+        )   
+
+
+class ProcessROIAPIView(APIView):
+
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+
+        secret = request.headers.get("Authorization")
+
+        if secret != f"Bearer {os.getenv('CRON_SECRET')}":
+            return Response(
+                {"detail": "Unauthorized"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        process_all_investments()
+
+        return Response({"success": True})
+    
+    
